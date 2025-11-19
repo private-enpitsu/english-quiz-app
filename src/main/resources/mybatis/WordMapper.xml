@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.app.mapper.WordMapper">
+
+    <!-- ランダム1件取得 -->
+    <select id="selectRandomWord" resultType="com.example.app.domain.Word">
+        SELECT *
+        FROM word
+        ORDER BY RAND()
+        LIMIT 1
+    </select>
+
+    <!-- ランダム誤答取得（日本語） -->
+    <select id="selectRandomWrongAnswers" resultType="java.lang.String">
+        SELECT japanese
+        FROM word
+        WHERE id != #{id}
+        ORDER BY RAND()
+        LIMIT #{limit}
+    </select>
+
+    <!-- id で検索 -->
+    <select id="findById" parameterType="long" resultType="com.example.app.domain.Word">
+        SELECT *
+        FROM word
+        WHERE id = #{id}
+    </select>
+
+</mapper>
+

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>英単語クイズ</title>
+  <style>
+    .choice { padding: 12px; border:1px solid #ccc; margin:8px 0; cursor:pointer; }
+    .green { background-color: #c8f7c5; }   /* 正解 */
+    .orange { background-color: #ffd59e; }  /* 不正解 */
+    #nextBtn { display:none; margin-top: 10px; padding:8px 12px; }
+  </style>
+</head>
+<body>
+  <div id="quizContainer">
+    <h2 id="questionEnglish">読み込み中…</h2>
+    <div id="choices"></div>
+    <button id="nextBtn">次へ</button>
+  </div>
+
+<script>
+let currentQuestion = null;
+
+// 初期ロード
+async function loadQuestion() {
+  const res = await fetch('/api/question');
+  const dto = await res.json();
+  currentQuestion = dto;
+  renderQuestion(dto);
+}
+
+function renderQuestion(dto) {
+  document.getElementById('questionEnglish').textContent = dto.english;
+  const choicesDiv = document.getElementById('choices');
+  choicesDiv.innerHTML = '';
+  dto.choices.forEach(choice => {
+    const el = document.createElement('div');
+    el.className = 'choice';
+    el.textContent = choice;
+    el.addEventListener('click', () => onChoiceClick(el, choice));
+    choicesDiv.appendChild(el);
+  });
+  document.getElementById('nextBtn').style.display = 'none';
+}
+
+async function onChoiceClick(element, selected) {
+  // disable clicks while waiting
+  document.querySelectorAll('.choice').forEach(e => e.style.pointerEvents = 'none');
+
+  const payload = { id: currentQuestion.id, selected: selected };
+  const res = await fetch('/api/answer', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+
+  // data: { correct: bool, correctAnswer: "..." , nextQuestion: {...} OPTIONAL }
+  if (data.correct) {
+    element.classList.add('green');
+    // 1秒後に次の問題を表示
+    setTimeout(() => {
+      if (data.nextQuestion) {
+        currentQuestion = data.nextQuestion;
+        renderQuestion(currentQuestion);
+      } else {
+        loadQuestion(); // fallback: request another question
+      }
+    }, 1000);
+  } else {
+    element.classList.add('orange');
+    // 正解の要素を緑にする
+    const choices = document.querySelectorAll('.choice');
+    choices.forEach(c => {
+      if (c.textContent === data.correctAnswer) {
+        c.classList.add('green');
+      }
+    });
+    // 次へボタンを表示して待機
+    const nextBtn = document.getElementById('nextBtn');
+    nextBtn.style.display = 'inline-block';
+    // prepare next question if provided
+    if (data.nextQuestion) {
+      nextBtn.onclick = () => {
+        currentQuestion = data.nextQuestion;
+        renderQuestion(currentQuestion);
+      };
+    } else {
+      nextBtn.onclick = () => loadQuestion();
+    }
+  }
+}
+
+// 最初にロード
+loadQuestion();
+</script>
+</body>
+</html>
