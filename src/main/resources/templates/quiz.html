@@ -18,58 +18,62 @@
   </div>
 
 <script>
-let currentQuestion = null;
+let currentQuestion = null; //現在の問題データを保持する変数。API から取得した JSON を格納する。
 
-// 初期ロード
+//・初期ロード
+//新しい問題をサーバーから取得して表示する非同期関数。
 async function loadQuestion() {
-  const res = await fetch('/api/question');
-  const dto = await res.json();
-  currentQuestion = dto;
-  renderQuestion(dto);
+  const res = await fetch('/api/question'); //サーバー API /api/question に GET リクエスト。await でレスポンスを待つ。
+  const dto = await res.json(); //レスポンス JSON をオブジェクト化。
+  currentQuestion = dto; //取得した問題を currentQuestion に保持。
+  renderQuestion(dto); //問題を画面に描画する関数を呼ぶ。
 }
 
+//・問題を画面に描画する関数。
 function renderQuestion(dto) {
-  document.getElementById('questionEnglish').textContent = dto.english;
-  const choicesDiv = document.getElementById('choices');
-  choicesDiv.innerHTML = '';
+  document.getElementById('questionEnglish').textContent = dto.english; //英単語（問題文）を h2 に表示。
+  const choicesDiv = document.getElementById('choices'); //選択肢を表示する div を取得。
+  choicesDiv.innerHTML = ''; //前の問題の選択肢をクリア。
+  
+  //選択肢リストをループ処理。
   dto.choices.forEach(choice => {
-    const el = document.createElement('div');
-    el.className = 'choice';
-    el.textContent = choice;
-    el.addEventListener('click', () => onChoiceClick(el, choice));
-    choicesDiv.appendChild(el);
+    const el = document.createElement('div'); //選択肢用の div を生成。
+    el.className = 'choice'; //CSS クラス choice を付与。
+    el.textContent = choice; //選択肢の文字列を表示。
+    el.addEventListener('click', () => onChoiceClick(el, choice)); //選択肢クリック時に onChoiceClick 関数を呼ぶ。
+    choicesDiv.appendChild(el); //選択肢を div に追加。
   });
-  document.getElementById('nextBtn').style.display = 'none';
+  document.getElementById('nextBtn').style.display = 'none'; //「次へ」ボタンを非表示にして関数終了。
 }
 
+//・選択肢がクリックされた時の処理。
 async function onChoiceClick(element, selected) {
-  // disable clicks while waiting
-  document.querySelectorAll('.choice').forEach(e => e.style.pointerEvents = 'none');
 
-  const payload = { id: currentQuestion.id, selected: selected };
-  const res = await fetch('/api/answer', {
+  document.querySelectorAll('.choice').forEach(e => e.style.pointerEvents = 'none'); // サーバー応答まで選択肢をクリック不可にする。
+
+  const payload = { id: currentQuestion.id, selected: selected }; //選択情報をサーバー用に作成。
+  const res = await fetch('/api/answer', { //POST で回答を送信。
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(payload)
   });
-  const data = await res.json();
+  const data = await res.json(); //サーバーから正誤情報と次の問題を取得。
 
-  // data: { correct: bool, correctAnswer: "..." , nextQuestion: {...} OPTIONAL }
-  if (data.correct) {
-    element.classList.add('green');
+  // dataの構造: { correct: bool, correctAnswer: "..." , nextQuestion: {...} OPTIONAL }
+  if (data.correct) { //正解の場合の処理。
+    element.classList.add('green'); //クリックした選択肢を緑色にするclassを付与。
     // 1秒後に次の問題を表示
     setTimeout(() => {
       if (data.nextQuestion) {
         currentQuestion = data.nextQuestion;
-        renderQuestion(currentQuestion);
+        renderQuestion(currentQuestion); //nextQuestion があればそれを表示、なければ新規ロード。
       } else {
-        loadQuestion(); // fallback: request another question
+        loadQuestion(); // fallback: 別の質問を要求する
       }
     }, 1000);
-  } else {
-    element.classList.add('orange');
-    // 正解の要素を緑にする
-    const choices = document.querySelectorAll('.choice');
+  } else { //不正解の場合。
+    element.classList.add('orange'); //クリックした選択肢をオレンジ色に。
+    const choices = document.querySelectorAll('.choice'); // 正解の要素を緑にする
     choices.forEach(c => {
       if (c.textContent === data.correctAnswer) {
         c.classList.add('green');
@@ -78,19 +82,19 @@ async function onChoiceClick(element, selected) {
     // 次へボタンを表示して待機
     const nextBtn = document.getElementById('nextBtn');
     nextBtn.style.display = 'inline-block';
-    // prepare next question if provided
-    if (data.nextQuestion) {
+
+    if (data.nextQuestion) { // ボタンクリック時に次の問題を表示する処理を設定。
       nextBtn.onclick = () => {
         currentQuestion = data.nextQuestion;
         renderQuestion(currentQuestion);
       };
     } else {
-      nextBtn.onclick = () => loadQuestion();
+      nextBtn.onclick = () => loadQuestion(); //nextQuestion がなければ新規問題をロード。
     }
   }
 }
 
-// 最初にロード
+// 最初にロード ページロード時に初回の問題を取得して表示。
 loadQuestion();
 </script>
 </body>

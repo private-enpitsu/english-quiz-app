@@ -9,31 +9,16 @@ import com.example.app.domain.Word;
 
 @Mapper
 public interface WordMapper {
-//    @Select("SELECT * FROM word WHERE id = #{id}")
-//    Word findById(Long id);
-//
-//    // ランダムに1件取得（簡易）
-//    @Select("SELECT * FROM word ORDER BY RAND() LIMIT 1")
-//    Word selectRandom();
 	
-//    @Select("SELECT * FROM word ORDER BY RAND() LIMIT 1")
-//    Word selectRandomWord();
-//
-//    @Select("SELECT japanese FROM word WHERE id != #{id} ORDER BY RAND() LIMIT #{limit}")
-//    List<String> selectRandomWrongAnswers(@Param("id") Long id, @Param("limit") int limit);
-//
-//    @Select("SELECT * FROM word WHERE id = #{id}")
-//    Word findById(Long id);
-	
-    Word selectRandomWord();
+    Word selectRandomWord(); //ランダムな単語を 1 件取得するメソッド。
 
-    List<String> selectRandomWrongAnswers(
-            @Param("id") Long id,
-            @Param("limit") int limit
+    List<String> selectRandomWrongAnswers( //誤答の候補をランダムに取得するメソッド。
+            @Param("id") Long id, //対象の単語 ID（正解の単語を除外するために使う）
+            @Param("limit") int limit //取得する誤答の数
     );
-
-    Word findById(Long id);
+    //@Param アノテーションは SQL 内で名前付きパラメータとして参照するために必要。
     
+    Word findById(Long id); //指定した ID の単語を取得するメソッド。
     
 }
 
