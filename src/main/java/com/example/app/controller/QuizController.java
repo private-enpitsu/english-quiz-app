@@ -1,14 +1,18 @@
 package com.example.app.controller;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.example.app.domain.Word;
 import com.example.app.service.QuizService;
 
 import lombok.RequiredArgsConstructor;
@@ -18,12 +22,45 @@ import lombok.RequiredArgsConstructor;
 public class QuizController {
     private final QuizService quizService;
 
-//    @GetMapping("/quiz")
+//  topページ（クイズぺージ）
     @GetMapping("/")
     public String quizPage() {
         return "quiz"; // src/main/resources/templates/quiz.html
     }
 
+    
+    
+    // 単語一覧ページ（および検索機能、ページネーション）
+    @GetMapping("/words")
+    public String wordList(
+            @RequestParam(name = "keyword", required = false) String keyword,
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            Model model) {
+
+        int pageSize = 50; // 1ページあたり件数
+        if (page < 1) page = 1;
+
+        int totalCount = quizService.countWords(keyword);
+        int totalPages = (int) Math.ceil((double) totalCount / pageSize);
+        if (totalPages == 0) totalPages = 1;
+        if (page > totalPages) page = totalPages;
+
+        int offset = (page - 1) * pageSize;
+
+        List<Word> words = quizService.getWordPage(keyword, offset, pageSize);
+
+        model.addAttribute("words", words);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("page", page);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("totalCount", totalCount);
+
+        return "word-list";
+    }
+
+    
+    
+    
     @GetMapping("/api/question")
     @ResponseBody //メソッドの戻り値を JSON などの HTTP レスポンスの本文として返すことを示します。これがないと、戻り値は View 名として扱われます。
     public Map<String, Object> question() { //JSON に変換されてクライアントに返されます

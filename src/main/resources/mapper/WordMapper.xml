@@ -49,5 +49,60 @@
 <!-- 指定された id の単語を1件取得。#{id} は Mapper メソッドの引数から自動で値が入る。 -->
 
 
-</mapper>
+	<!-- ◆全件取得（単語一覧用） -->
+	<select id="findAll" resultType="com.example.app.domain.Word">
+	    SELECT *
+	    FROM word
+	    ORDER BY id
+	</select>
+	    
+    
+    <!-- ◆キーワード検索（英語 or 日本語 を部分一致） -->
+    <select id="searchByKeyword" resultType="com.example.app.domain.Word">
+        SELECT *
+        FROM word
+        <where>
+            english LIKE CONCAT('%', #{keyword}, '%')
+            OR japanese LIKE CONCAT('%', #{keyword}, '%')
+        </where>
+        ORDER BY id
+    </select>
 
+        
+    <!-- ◆ページネーション -->
+    <!-- ◆件数取得 -->
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM word
+    </select>
+
+    <select id="countByKeyword" parameterType="string" resultType="int">
+        SELECT COUNT(*)
+        FROM word
+        <where>
+            english LIKE CONCAT('%', #{keyword}, '%')
+            OR japanese LIKE CONCAT('%', #{keyword}, '%')
+        </where>
+    </select>
+
+    <!-- ◆ページ取得（全件） -->
+    <select id="findPage" resultType="com.example.app.domain.Word">
+        SELECT *
+        FROM word
+        ORDER BY id
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- ◆ページ取得（検索あり） -->
+    <select id="searchPage" resultType="com.example.app.domain.Word">
+        SELECT *
+        FROM word
+        <where>
+            english LIKE CONCAT('%', #{keyword}, '%')
+            OR japanese LIKE CONCAT('%', #{keyword}, '%')
+        </where>
+        ORDER BY id
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+
+</mapper>

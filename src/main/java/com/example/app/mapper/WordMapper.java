@@ -20,5 +20,26 @@ public interface WordMapper {
     
     Word findById(Long id); //指定した ID の単語を取得するメソッド。
     
+    
+    // 全件取得
+    List<Word> findAll();
+    
+    // キーワード検索
+    List<Word> searchByKeyword(@Param("keyword") String keyword);
+    
+    
+ // データ件数取得
+    int countAll();
+
+    int countByKeyword(@Param("keyword") String keyword);
+
+    // ぺージネーション ページ取得
+    List<Word> findPage(@Param("offset") int offset,
+                        @Param("limit") int limit);
+
+    List<Word> searchPage(@Param("keyword") String keyword,
+                          @Param("offset") int offset,
+                          @Param("limit") int limit);
+    
 }
 

@@ -1,101 +1,166 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
-  <meta charset="UTF-8" />
-  <title>英単語クイズ</title>
-  <style>
-    .choice { padding: 12px; border:1px solid #ccc; margin:8px 0; cursor:pointer; }
-    .green { background-color: #c8f7c5; }   /* 正解 */
-    .orange { background-color: #ffd59e; }  /* 不正解 */
-    #nextBtn { display:none; margin-top: 10px; padding:8px 12px; }
-  </style>
+	<meta charset="UTF-8" />
+	<title>英単語クイズ</title>
+	<style>
+		.choice {
+			padding: 12px;
+			border: 1px solid #ccc;
+			margin: 8px 0;
+			cursor: pointer;
+		}
+
+		.green {
+			background-color: #c8f7c5;
+		}
+
+		/* 正解 */
+		.orange {
+			background-color: #ffd59e;
+		}
+
+		/* 不正解 */
+		#nextBtn {
+			display: none;
+			margin-top: 10px;
+			padding: 8px 12px;
+		}
+
+		/* ★ スコアエリアに少し余白 */
+		#scoreArea {
+			margin: 10px 0;
+		}
+	</style>
 </head>
+
 <body>
-  <div id="quizContainer">
-    <h2 id="questionEnglish">読み込み中…</h2>
-    <div id="choices"></div>
-    <button id="nextBtn">次へ</button>
-  </div>
 
-<script>
-let currentQuestion = null; //現在の問題データを保持する変数。API から取得した JSON を格納する。
+	<!-- ここを追加 -->
+	<div>
+		<a href="/words">単語一覧ページへ</a>
+	</div>
+	<div id="quizContainer">
+		<h2 id="questionEnglish">読み込み中…</h2>
 
-//・初期ロード
-//新しい問題をサーバーから取得して表示する非同期関数。
-async function loadQuestion() {
-  const res = await fetch('/api/question'); //サーバー API /api/question に GET リクエスト。await でレスポンスを待つ。
-  const dto = await res.json(); //レスポンス JSON をオブジェクト化。
-  currentQuestion = dto; //取得した問題を currentQuestion に保持。
-  renderQuestion(dto); //問題を画面に描画する関数を呼ぶ。
-}
+		<!-- ★ スコア表示エリアを追加 -->
+		<div id="scoreArea">
+			正解数: <span id="correctCount">0</span> /
+			出題数: <span id="totalCount">0</span>
+			（正答率: <span id="accuracy">0</span>%）
+		</div>
 
-//・問題を画面に描画する関数。
-function renderQuestion(dto) {
-  document.getElementById('questionEnglish').textContent = dto.english; //英単語（問題文）を h2 に表示。
-  const choicesDiv = document.getElementById('choices'); //選択肢を表示する div を取得。
-  choicesDiv.innerHTML = ''; //前の問題の選択肢をクリア。
-  
-  //選択肢リストをループ処理。
-  dto.choices.forEach(choice => {
-    const el = document.createElement('div'); //選択肢用の div を生成。
-    el.className = 'choice'; //CSS クラス choice を付与。
-    el.textContent = choice; //選択肢の文字列を表示。
-    el.addEventListener('click', () => onChoiceClick(el, choice)); //選択肢クリック時に onChoiceClick 関数を呼ぶ。
-    choicesDiv.appendChild(el); //選択肢を div に追加。
-  });
-  document.getElementById('nextBtn').style.display = 'none'; //「次へ」ボタンを非表示にして関数終了。
-}
+		<div id="choices"></div>
+		<button id="nextBtn">次へ</button>
+	</div>
 
-//・選択肢がクリックされた時の処理。
-async function onChoiceClick(element, selected) {
 
-  document.querySelectorAll('.choice').forEach(e => e.style.pointerEvents = 'none'); // サーバー応答まで選択肢をクリック不可にする。
+	<script>
+		let currentQuestion = null; //現在の問題データを保持する変数。API から取得した JSON を格納する。
 
-  const payload = { id: currentQuestion.id, selected: selected }; //選択情報をサーバー用に作成。
-  const res = await fetch('/api/answer', { //POST で回答を送信。
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(payload)
-  });
-  const data = await res.json(); //サーバーから正誤情報と次の問題を取得。
+		//スコア用
+		let totalCount = 0;         // 出題数
+		let correctCount = 0;       // 正解数
 
-  // dataの構造: { correct: bool, correctAnswer: "..." , nextQuestion: {...} OPTIONAL }
-  if (data.correct) { //正解の場合の処理。
-    element.classList.add('green'); //クリックした選択肢を緑色にするclassを付与。
-    // 1秒後に次の問題を表示
-    setTimeout(() => {
-      if (data.nextQuestion) {
-        currentQuestion = data.nextQuestion;
-        renderQuestion(currentQuestion); //nextQuestion があればそれを表示、なければ新規ロード。
-      } else {
-        loadQuestion(); // fallback: 別の質問を要求する
-      }
-    }, 1000);
-  } else { //不正解の場合。
-    element.classList.add('orange'); //クリックした選択肢をオレンジ色に。
-    const choices = document.querySelectorAll('.choice'); // 正解の要素を緑にする
-    choices.forEach(c => {
-      if (c.textContent === data.correctAnswer) {
-        c.classList.add('green');
-      }
-    });
-    // 次へボタンを表示して待機
-    const nextBtn = document.getElementById('nextBtn');
-    nextBtn.style.display = 'inline-block';
+		//・初期ロード
+		//新しい問題をサーバーから取得して表示する非同期関数。
+		async function loadQuestion() {
+			const res = await fetch('/api/question'); //サーバー API /api/question に GET リクエスト。await でレスポンスを待つ。
+			const dto = await res.json(); //レスポンス JSON をオブジェクト化。
+			currentQuestion = dto; //取得した問題を currentQuestion に保持。
+			renderQuestion(dto); //問題を画面に描画する関数を呼ぶ。
+		}
 
-    if (data.nextQuestion) { // ボタンクリック時に次の問題を表示する処理を設定。
-      nextBtn.onclick = () => {
-        currentQuestion = data.nextQuestion;
-        renderQuestion(currentQuestion);
-      };
-    } else {
-      nextBtn.onclick = () => loadQuestion(); //nextQuestion がなければ新規問題をロード。
-    }
-  }
-}
+		//・問題を画面に描画する関数。
+		function renderQuestion(dto) {
+			document.getElementById('questionEnglish').textContent = dto.english; //英単語（問題文）を h2 に表示。
+			const choicesDiv = document.getElementById('choices'); //選択肢を表示する div を取得。
+			choicesDiv.innerHTML = ''; //前の問題の選択肢をクリア。
 
-// 最初にロード ページロード時に初回の問題を取得して表示。
-loadQuestion();
-</script>
+			//選択肢リストをループ処理。
+			dto.choices.forEach(choice => {
+				const el = document.createElement('div'); //選択肢用の div を生成。
+				el.className = 'choice'; //CSS クラス choice を付与。
+				el.textContent = choice; //選択肢の文字列を表示。
+				el.addEventListener('click', () => onChoiceClick(el, choice)); //選択肢クリック時に onChoiceClick 関数を呼ぶ。
+				choicesDiv.appendChild(el); //選択肢を div に追加。
+			});
+			document.getElementById('nextBtn').style.display = 'none'; //「次へ」ボタンを非表示にして関数終了。
+		}
+
+		//・選択肢がクリックされた時の処理。
+		async function onChoiceClick(element, selected) {
+
+			document.querySelectorAll('.choice').forEach(e => e.style.pointerEvents = 'none'); // サーバー応答まで選択肢をクリック不可にする。
+
+			const payload = {id: currentQuestion.id, selected: selected}; //選択情報をサーバー用に作成。
+			const res = await fetch('/api/answer', { //POST で回答を送信。
+				method: 'POST',
+				headers: {'Content-Type': 'application/json'},
+				body: JSON.stringify(payload)
+			});
+			const data = await res.json(); //サーバーから正誤情報と次の問題を取得。
+
+			// ★ スコア更新：この問題に回答したので出題数+1
+			totalCount++;
+			if (data.correct) {
+				correctCount++;
+			}
+			updateScoreView();
+
+			// dataの構造: { correct: bool, correctAnswer: "..." , nextQuestion: {...} OPTIONAL }
+			if (data.correct) { //正解の場合の処理。
+				element.classList.add('green'); //クリックした選択肢を緑色にするclassを付与。
+				// 1秒後に次の問題を表示
+				setTimeout(() => {
+					if (data.nextQuestion) {
+						currentQuestion = data.nextQuestion;
+						renderQuestion(currentQuestion); //nextQuestion があればそれを表示、なければ新規ロード。
+					} else {
+						loadQuestion(); // fallback: 別の質問を要求する
+					}
+				}, 1000);
+			} else { //不正解の場合。
+				element.classList.add('orange'); //クリックした選択肢をオレンジ色に。
+				const choices = document.querySelectorAll('.choice'); // 正解の要素を緑にする
+				choices.forEach(c => {
+					if (c.textContent === data.correctAnswer) {
+						c.classList.add('green');
+					}
+				});
+				// 次へボタンを表示して待機
+				const nextBtn = document.getElementById('nextBtn');
+				nextBtn.style.display = 'inline-block';
+
+				if (data.nextQuestion) { // ボタンクリック時に次の問題を表示する処理を設定。
+					nextBtn.onclick = () => {
+						currentQuestion = data.nextQuestion;
+						renderQuestion(currentQuestion);
+					};
+				} else {
+					nextBtn.onclick = () => loadQuestion(); //nextQuestion がなければ新規問題をロード。
+				}
+			}
+		}
+
+
+		// スコア表示を更新する関数
+		function updateScoreView() {
+			document.getElementById('correctCount').textContent = correctCount;
+			document.getElementById('totalCount').textContent = totalCount;
+
+			let acc = 0;
+			if (totalCount > 0) {
+				acc = Math.round((correctCount / totalCount) * 100);
+			}
+			document.getElementById('accuracy').textContent = acc;
+		}
+
+
+		updateScoreView(); // スコア初期表示
+		loadQuestion(); // 最初にロード ページロード時に初回の問題を取得して表示。
+	</script>
 </body>
+
 </html>
