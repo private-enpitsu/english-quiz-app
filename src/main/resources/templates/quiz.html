@@ -66,6 +66,46 @@
 		let totalCount = 0;         // 出題数
 		let correctCount = 0;       // 正解数
 
+		
+		// ▼ ここから追加：苦手単語リスト（localStorage）用のヘルパー ▼
+		// localStorage から苦手単語リストを読み込む
+		// 形式: [{ id: 1, english: "apple", japanese: "りんご" }, ...]
+		function loadWeakWords() {
+		    const json = localStorage.getItem('weakWords');
+		    if (!json) {
+		        return [];
+		    }
+		    try {
+		        return JSON.parse(json);
+		    } catch (e) {
+		        console.error('weakWords の JSON パースに失敗しました', e);
+		        return [];
+		    }
+		}
+
+		// 苦手単語リストを localStorage に保存する
+		function saveWeakWords(list) {
+		    localStorage.setItem('weakWords', JSON.stringify(list));
+		}
+
+		// 苦手単語を1件追加する（id 重複を避ける）
+		function addWeakWord(id, english, japanese) {
+		    const list = loadWeakWords();
+
+		    // すでに同じ id がある場合は追加しない（重複防止）
+		    const exists = list.some(item => item.id === id);
+		    if (!exists) {
+		        list.push({
+		            id: id,
+		            english: english,
+		            japanese: japanese
+		        });
+		        saveWeakWords(list);
+		    }
+		}
+		// ▲ 苦手単語リストここまで ▲
+		
+		
 		//・初期ロード
 		//新しい問題をサーバーから取得して表示する非同期関数。
 		async function loadQuestion() {
@@ -126,6 +166,16 @@
 				}, 1000);
 			} else { //不正解の場合。
 				element.classList.add('orange'); //クリックした選択肢をオレンジ色に。
+				
+				// ▼ 苦手単語リストに登録 ▼
+				// currentQuestion から英単語、レスポンスから正解の日本語を使う
+				addWeakWord(
+				    currentQuestion.id,         // 問題ID
+				    currentQuestion.english,    // 英単語
+				    data.correctAnswer          // 正解の日本語
+				);
+				// ▲ 苦手単語リストに登録ここまで ▲
+				
 				const choices = document.querySelectorAll('.choice'); // 正解の要素を緑にする
 				choices.forEach(c => {
 					if (c.textContent === data.correctAnswer) {

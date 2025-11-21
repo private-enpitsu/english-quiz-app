@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>苦手単語リスト（このブラウザのみ）</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin-top: 16px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #f0f0f0;
+        }
+
+        button {
+            margin: 4px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 共通ヘッダー -->
+    <div th:replace="fragments/header :: globalHeader"></div>
+
+    <h1>苦手単語リスト</h1>
+
+    <p>
+        このリストは <strong>このブラウザの localStorage</strong> に保存されています。<br>
+        ブラウザを変えたり、ストレージを削除するとリセットされます。
+    </p>
+
+    <div>
+        <button id="clearAllBtn">苦手単語リストをすべて削除</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>英単語</th>
+                <th>日本語</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody id="weakWordsBody">
+            <!-- JS で行を生成 -->
+        </tbody>
+    </table>
+
+    <script>
+        // quiz.html と同じ形式のヘルパー（こちらにも定義）
+
+        function loadWeakWords() {
+            const json = localStorage.getItem('weakWords');
+            if (!json) {
+                return [];
+            }
+            try {
+                return JSON.parse(json);
+            } catch (e) {
+                console.error('weakWords の JSON パースに失敗しました', e);
+                return [];
+            }
+        }
+
+        function saveWeakWords(list) {
+            localStorage.setItem('weakWords', JSON.stringify(list));
+        }
+
+        // 画面にリストを描画
+        function renderWeakWords() {
+            const tbody = document.getElementById('weakWordsBody');
+            const list = loadWeakWords();
+
+            tbody.innerHTML = '';
+
+            if (list.length === 0) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 4;
+                td.textContent = '登録されている苦手単語はありません。';
+                tr.appendChild(td);
+                tbody.appendChild(tr);
+                return;
+            }
+
+            list.forEach(item => {
+                const tr = document.createElement('tr');
+
+                const tdId = document.createElement('td');
+                tdId.textContent = item.id;
+
+                const tdEn = document.createElement('td');
+                tdEn.textContent = item.english;
+
+                const tdJa = document.createElement('td');
+                tdJa.textContent = item.japanese;
+
+                const tdActions = document.createElement('td');
+                const delBtn = document.createElement('button');
+                delBtn.textContent = 'この単語を削除';
+                delBtn.addEventListener('click', () => {
+                    deleteWeakWord(item.id);
+                });
+
+                tdActions.appendChild(delBtn);
+
+                tr.appendChild(tdId);
+                tr.appendChild(tdEn);
+                tr.appendChild(tdJa);
+                tr.appendChild(tdActions);
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 単語1件削除
+        function deleteWeakWord(id) {
+            const list = loadWeakWords();
+            const newList = list.filter(item => item.id !== id);
+            saveWeakWords(newList);
+            renderWeakWords();
+        }
+
+        // 全削除
+        document.getElementById('clearAllBtn').addEventListener('click', () => {
+            if (confirm('苦手単語リストをすべて削除しますか？')) {
+                localStorage.removeItem('weakWords');
+                renderWeakWords();
+            }
+        });
+
+        // 初期描画
+        renderWeakWords();
+    </script>
+
+</body>
+
+</html>
