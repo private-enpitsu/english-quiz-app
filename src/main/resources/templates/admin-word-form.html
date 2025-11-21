@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>管理：単語編集</title>
+    <style>
+        label {
+            display: block;
+            margin-top: 8px;
+        }
+
+        input[type="text"] {
+            width: 300px;
+            padding: 4px;
+        }
+
+        .actions {
+            margin-top: 12px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 共通ヘッダー -->
+    <div th:replace="fragments/header :: globalHeader"></div>
+
+    <!--
+      word.id が null なら「新規」、それ以外なら「編集」と表示を切り替える。
+    -->
+    <h1 th:text="${word.id} == null ? '管理：単語新規登録' : '管理：単語編集'">
+        管理：単語編集
+    </h1>
+
+    <!--
+      action は id の有無で切り替え。
+      ・新規: /admin/words/new
+      ・編集: /admin/words/{id}/edit
+    -->
+    <form th:object="${word}"
+          th:action="${word.id} == null ?
+                     @{/admin/words/new} :
+                     @{/admin/words/{id}/edit(id=${word.id})}"
+          method="post">
+
+        <!-- 英単語入力 -->
+        <label>
+            英単語:
+            <!-- th:field="*{english}" で Word.english とバインド -->
+            <input type="text" th:field="*{english}" />
+        </label>
+
+        <!-- 日本語入力 -->
+        <label>
+            日本語:
+            <!-- th:field="*{japanese}" で Word.japanese とバインド -->
+            <input type="text" th:field="*{japanese}" />
+        </label>
+
+        <div class="actions">
+            <button type="submit">保存</button>
+            <!-- 一覧に戻るリンク -->
+            <a th:href="@{/admin/words}">キャンセル（一覧に戻る）</a>
+        </div>
+    </form>
+
+</body>
+
+</html>
