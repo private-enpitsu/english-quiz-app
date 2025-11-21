@@ -19,6 +19,38 @@ public class QuizService {
 	
     private final WordMapper wordMapper;
 
+    
+    // 単語一覧取得
+    public List<Word> getAllWords() {
+        return wordMapper.findAll();
+    }
+    
+    
+    // 一覧画面、単語検索
+    public List<Word> getWordsByKeyword(String keyword) {
+        return wordMapper.searchByKeyword(keyword);
+    }
+    
+    
+    // 件数取得（検索あり／なし）
+    public int countWords(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return wordMapper.countAll();
+        } else {
+            return wordMapper.countByKeyword(keyword);
+        }
+    }
+
+    // ぺージネーション：ページ取得（検索あり／なし）
+    public List<Word> getWordPage(String keyword, int offset, int limit) {
+        if (keyword == null || keyword.isBlank()) {
+            return wordMapper.findPage(offset, limit);
+        } else {
+            return wordMapper.searchPage(keyword, offset, limit);
+        }
+    }
+    
+    
     //・新しいクイズ問題を生成するメソッド。
     public Map<String, Object> generateQuestion() {
         Word correctWord = wordMapper.selectRandomWord(); //WordMapper を使って 正解の単語 をランダムに1件取得。

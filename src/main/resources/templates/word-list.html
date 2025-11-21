@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8" />
+	<title>単語一覧</title>
+	<style>
+		table {
+			border-collapse: collapse;
+			width: 80%;
+			margin-top: 16px;
+		}
+
+		th,
+		td {
+			border: 1px solid #ccc;
+			padding: 8px;
+		}
+
+		th {
+			background-color: #f0f0f0;
+		}
+
+		a {
+			text-decoration: none;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>単語一覧</h1>
+
+	<p>
+		<a th:href="@{/}">← クイズページに戻る</a>
+	</p>
+
+
+	<!-- ★ 検索フォーム -->
+	<form th:action="@{/words}" method="get">
+		<input type="text" name="keyword" placeholder="英単語 / 日本語で検索" th:value="${keyword}">
+		<button type="submit">検索</button>
+		<a th:href="@{/words}">クリア</a>
+	</form>
+
+	<!-- 件数表示 -->
+	<p th:text="'件数: ' + ${totalCount} + ' 件'">件数: 0 件</p>
+
+	<table>
+		<thead>
+			<tr>
+				<th>ID</th>
+				<th>英単語</th>
+				<th>日本語</th>
+			</tr>
+		</thead>
+		<tbody>
+			<!-- model属性 "words" をループ -->
+			<tr th:each="w : ${words}">
+				<td th:text="${w.id}">1</td>
+				<td th:text="${w.english}">apple</td>
+				<td th:text="${w.japanese}">りんご</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<!-- ページネーション -->
+	<div id="pagination" style="margin-top: 16px;">
+		<!-- 前へ -->
+		<span th:if="${page > 1}">
+			<a th:href="@{/words(page=${page - 1}, keyword=${keyword})}">前へ</a>
+		</span>
+
+		<!-- ページ番号 -->
+		<span th:each="p : ${#numbers.sequence(1, totalPages)}" style="margin: 0 4px;">
+			<span th:if="${p == page}" th:text="${p}"></span>
+			<a th:if="${p != page}" th:href="@{/words(page=${p}, keyword=${keyword})}" th:text="${p}"></a>
+		</span>
+
+		<!-- 次へ -->
+		<span th:if="${page < totalPages}">
+			<a th:href="@{/words(page=${page + 1}, keyword=${keyword})}">次へ</a>
+		</span>
+	</div>
+
+</body>
+
+</html>
