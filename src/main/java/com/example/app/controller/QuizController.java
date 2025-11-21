@@ -28,7 +28,13 @@ public class QuizController {
         return "quiz"; // src/main/resources/templates/quiz.html
     }
 
-    
+    // ▼ 苦手単語リスト画面 ▼
+    @GetMapping("/weak-words")
+    public String weakWordsPage() {
+        // この画面は localStorage のみを使うので、Model は不要
+        return "weak-words"; // weak-words.html
+    }
+    // ▲ 苦手単語リスト画面ここまで ▲
     
     // 単語一覧ページ（および検索機能、ページネーション）
     @GetMapping("/words")
