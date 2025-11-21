@@ -18,7 +18,8 @@ import lombok.RequiredArgsConstructor;
 public class QuizController {
     private final QuizService quizService;
 
-    @GetMapping("/quiz")
+//    @GetMapping("/quiz")
+    @GetMapping("/")
     public String quizPage() {
         return "quiz"; // src/main/resources/templates/quiz.html
     }

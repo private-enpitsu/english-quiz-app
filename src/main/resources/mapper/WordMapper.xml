@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<!-- mapper タグで Mapper XML の開始。namespace 属性は、対応する Java の Mapper インターフェース を指定 -->
+<mapper namespace="com.example.app.mapper.WordMapper">
+
+
+
+    <!-- ◆ランダム問題1件取得 -->
+    <select id="selectRandomWord" resultType="com.example.app.domain.Word">
+        SELECT *
+        FROM word
+        ORDER BY RAND()
+        LIMIT 1
+    </select>
+<!-- ORDER BY RAND()で、ランダム順に並べ、LIMIT 1 で1件だけ取得。 -->
+
+
+
+	<!-- ◆ランダム誤答取得（日本語） -->
+<!-- id="selectRandomWrongAnswers" → Mapper メソッドと対応。 -->
+<!-- resultType="java.lang.String" → 結果を文字列として返す（日本語カラムのみ） -->
+    <select id="selectRandomWrongAnswers" resultType="java.lang.String">
+        SELECT japanese
+        FROM word
+        WHERE id != #{id}
+        ORDER BY RAND()
+        LIMIT #{limit}
+    </select>
+<!-- japanese カラムのみ取得。 -->
+<!-- WHERE id != #{id} → 正解の単語は除外。 -->
+<!-- ORDER BY RAND() → ランダム順。 -->
+<!-- LIMIT #{limit} → 取得件数を動的に指定（Mapper の @Param("limit") と連動） -->
+
+
+
+
+    <!-- ◆id で検索 -->
+<!-- 指定 ID の単語を取得する SQL -->
+<!-- id="findById" → Mapper メソッドと対応。 -->
+<!-- parameterType="long" → 引数の型を指定（Long id）。 -->
+<!-- resultType="com.example.app.domain.Word" → 結果を Word オブジェクトにマッピング -->
+    <select id="findById" parameterType="long" resultType="com.example.app.domain.Word">
+        SELECT *
+        FROM word
+        WHERE id = #{id}
+    </select>
+<!-- 指定された id の単語を1件取得。#{id} は Mapper メソッドの引数から自動で値が入る。 -->
+
+
+</mapper>
+
