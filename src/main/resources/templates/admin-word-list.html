@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>管理：単語一覧</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin-top: 16px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #f0f0f0;
+        }
+
+        a {
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 共通ヘッダー（A-1 を実装している場合） -->
+    <!-- A-1 の header.html を使っていない場合は、この行は後で調整でOK -->
+    <div th:replace="fragments/header :: globalHeader"></div>
+
+    <h1>管理：単語一覧</h1>
+
+    <p>
+        <!-- 新規作成ページへのリンク -->
+        <a th:href="@{/admin/words/new}">＋ 新規単語を追加</a>
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>英単語</th>
+                <th>日本語</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- model属性 "words" をループ -->
+            <tr th:each="w : ${words}">
+                <td th:text="${w.id}">1</td>
+                <td th:text="${w.english}">apple</td>
+                <td th:text="${w.japanese}">りんご</td>
+                <td>
+                    <!-- 編集画面へのリンク -->
+                    <a th:href="@{/admin/words/{id}/edit(id=${w.id})}">編集</a>
+
+                    <!-- 削除フォーム（POST） -->
+                    <form th:action="@{/admin/words/{id}/delete(id=${w.id})}"
+                          method="post"
+                          style="display:inline;">
+                        <button type="submit"
+                                onclick="return confirm('本当に削除しますか？');">
+                            削除
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</body>
+
+</html>

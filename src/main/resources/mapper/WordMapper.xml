@@ -48,7 +48,7 @@
     </select>
 <!-- 指定された id の単語を1件取得。#{id} は Mapper メソッドの引数から自動で値が入る。 -->
 
-
+	
 	<!-- ◆全件取得（単語一覧用） -->
 	<select id="findAll" resultType="com.example.app.domain.Word">
 	    SELECT *
@@ -56,53 +56,81 @@
 	    ORDER BY id
 	</select>
 	    
-    
-    <!-- ◆キーワード検索（英語 or 日本語 を部分一致） -->
-    <select id="searchByKeyword" resultType="com.example.app.domain.Word">
-        SELECT *
-        FROM word
-        <where>
-            english LIKE CONCAT('%', #{keyword}, '%')
-            OR japanese LIKE CONCAT('%', #{keyword}, '%')
-        </where>
-        ORDER BY id
-    </select>
-
-        
-    <!-- ◆ページネーション -->
-    <!-- ◆件数取得 -->
-    <select id="countAll" resultType="int">
-        SELECT COUNT(*) FROM word
-    </select>
-
-    <select id="countByKeyword" parameterType="string" resultType="int">
-        SELECT COUNT(*)
-        FROM word
-        <where>
-            english LIKE CONCAT('%', #{keyword}, '%')
-            OR japanese LIKE CONCAT('%', #{keyword}, '%')
-        </where>
-    </select>
-
-    <!-- ◆ページ取得（全件） -->
-    <select id="findPage" resultType="com.example.app.domain.Word">
-        SELECT *
-        FROM word
-        ORDER BY id
-        LIMIT #{limit} OFFSET #{offset}
-    </select>
-
-    <!-- ◆ページ取得（検索あり） -->
-    <select id="searchPage" resultType="com.example.app.domain.Word">
-        SELECT *
-        FROM word
-        <where>
-            english LIKE CONCAT('%', #{keyword}, '%')
-            OR japanese LIKE CONCAT('%', #{keyword}, '%')
-        </where>
-        ORDER BY id
-        LIMIT #{limit} OFFSET #{offset}
-    </select>
+	
+	<!-- ◆キーワード検索（英語 or 日本語 を部分一致） -->
+	<select id="searchByKeyword" resultType="com.example.app.domain.Word">
+	    SELECT *
+	    FROM word
+	    <where>
+	        english LIKE CONCAT('%', #{keyword}, '%')
+	        OR japanese LIKE CONCAT('%', #{keyword}, '%')
+	    </where>
+	    ORDER BY id
+	</select>
+	
+	    
+	<!-- ◆ページネーション -->
+	<!-- ◆件数取得 -->
+	<select id="countAll" resultType="int">
+	    SELECT COUNT(*) FROM word
+	</select>
+	
+	<select id="countByKeyword" parameterType="string" resultType="int">
+	    SELECT COUNT(*)
+	    FROM word
+	    <where>
+	        english LIKE CONCAT('%', #{keyword}, '%')
+	        OR japanese LIKE CONCAT('%', #{keyword}, '%')
+	    </where>
+	</select>
+	
+	<!-- ◆ページ取得（全件） -->
+	<select id="findPage" resultType="com.example.app.domain.Word">
+	    SELECT *
+	    FROM word
+	    ORDER BY id
+	    LIMIT #{limit} OFFSET #{offset}
+	</select>
+	
+	<!-- ◆ページ取得（検索あり） -->
+	<select id="searchPage" resultType="com.example.app.domain.Word">
+	    SELECT *
+	    FROM word
+	    <where>
+	        english LIKE CONCAT('%', #{keyword}, '%')
+	        OR japanese LIKE CONCAT('%', #{keyword}, '%')
+	    </where>
+	    ORDER BY id
+	    LIMIT #{limit} OFFSET #{offset}
+	</select>
+	
+	
+	<!-- ◆word新規登録 -->
+	<!--Word オブジェクトの english / japanese を使って INSERT する。
+	id は AUTO_INCREMENT 想定のため指定しない。	-->
+	  <insert id="insert" parameterType="com.example.app.domain.Word">
+	      INSERT INTO word (english, japanese)
+	      VALUES (#{english}, #{japanese})
+	  </insert>
+	
+	  <!-- ◆更新 -->
+	  <!-- 主キー id でレコードを特定し、english / japanese を上書きする。-->
+	  <update id="update" parameterType="com.example.app.domain.Word">
+	      UPDATE word
+	      SET
+	          english = #{english},
+	          japanese = #{japanese}
+	      WHERE id = #{id}
+	  </update>
+	
+	  <!-- ◆削除 -->
+	  <!--
+	    主キー id でレコードを1件削除する。
+	  -->
+	  <delete id="deleteById" parameterType="long">
+	      DELETE FROM word
+	      WHERE id = #{id}
+	  </delete>
 
 
 </mapper>

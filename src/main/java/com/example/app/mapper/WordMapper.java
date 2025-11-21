@@ -41,5 +41,17 @@ public interface WordMapper {
                           @Param("offset") int offset,
                           @Param("limit") int limit);
     
+    
+    // 管理用 CRUD ▼
+
+    // 新規登録
+    void insert(Word word);
+
+    // 更新
+    void update(Word word);
+
+    // 削除
+    void deleteById(Long id);
+    
 }
 

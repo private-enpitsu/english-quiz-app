@@ -19,6 +19,7 @@ public class QuizService {
 	
     private final WordMapper wordMapper;
 
+//    ユーザー用
     
     // 単語一覧取得
     public List<Word> getAllWords() {
@@ -49,6 +50,37 @@ public class QuizService {
             return wordMapper.searchPage(keyword, offset, limit);
         }
     }
+    
+    
+ // 管理者用の CRUD メソッドを
+
+    // 単語1件取得（管理画面の編集用）
+    public Word getWord(Long id) {
+        // 指定IDの単語を1件取得。存在しない場合は null になる想定
+        return wordMapper.findById(id);
+    }
+
+    // 単語新規登録
+    public void createWord(Word word) {
+        // english / japanese フィールドを使って INSERT
+        wordMapper.insert(word);
+    }
+
+    // 単語更新
+    public void updateWord(Word word) {
+        // id をキーに english / japanese を更新
+        wordMapper.update(word);
+    }
+
+    // 単語削除
+    public void deleteWord(Long id) {
+        // 指定IDのレコードを削除
+        wordMapper.deleteById(id);
+    }
+
+
+    
+    
     
     
     //・新しいクイズ問題を生成するメソッド。
